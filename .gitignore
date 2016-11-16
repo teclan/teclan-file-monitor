@@ -1,0 +1,10 @@
+/.classpath
+/.project
+/.settings/
+/db/
+/target/
+/log/
+/.env
+*.pyc
+pcrMeasureLog
+SecCardLog
