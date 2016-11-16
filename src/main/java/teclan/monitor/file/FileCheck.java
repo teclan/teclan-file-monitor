@@ -12,6 +12,7 @@ import com.google.inject.name.Named;
 
 import teclan.monitor.db.Database;
 import teclan.monitor.db.model.FileRecords;
+import teclan.utils.FileUtils;
 
 @Singleton
 public class FileCheck {
@@ -72,8 +73,11 @@ public class FileCheck {
             record = (FileRecords) FileRecords.getMetaModel().getModelClass()
                     .newInstance();
 
+            String summary = FileUtils.getFileSummary(file.getAbsoluteFile(),
+                    "SHA-256");
+
             record.set("path", file.getAbsolutePath(), "length", length,
-                    "last_modified", lastModified).saveIt();
+                    "last_modified", lastModified, "summary", summary).saveIt();
 
         } catch (InstantiationException e) {
             LOGGER.error(e.getMessage(), e);

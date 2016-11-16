@@ -4,8 +4,7 @@ id 						INT(11) NOT NULL AUTO_INCREMENT,
 path					varchar(2000),
 last_modified			varchar(50),
 length					varchar(50),
-md5						varchar(50),
-sha256					varchar(100),
+summary					varchar(100), -- 64位
 description				varchar(100),
 created_at        		TIMESTAMP,
 updated_at        		TIMESTAMP

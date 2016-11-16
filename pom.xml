@@ -15,12 +15,18 @@
 	</properties>
 
 	<dependencies>
+	<dependency>
+		<groupId>teclan.utils</groupId>
+		<artifactId>teclan-utils</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<exclusions>
+			<exclusion>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-simple</artifactId>
+			</exclusion>
+		</exclusions>
 
-		<dependency>
-			<groupId>org.javalite</groupId>
-			<artifactId>activejdbc</artifactId>
-			<version>1.4.11</version>
-		</dependency>
+	</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
