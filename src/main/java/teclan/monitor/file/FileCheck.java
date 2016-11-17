@@ -32,6 +32,43 @@ public class FileCheck {
         scanDir(file);
         LOGGER.info("目录 {} 初始化结束", monitorDir);
         database.closeDatabase();
+
+        while (true) {
+
+            check();
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+
+    }
+
+    public void check() {
+        database.openDatabase();
+        List<FileRecords> records = FileRecords.findAll();
+
+        for (FileRecords record : records) {
+            File file = new File(record.getString("path"));
+
+            if (!file.exists()) {
+                LOGGER.warn("File was deleted !!! :{}", file.getAbsoluteFile());
+                continue;
+            }
+
+            if (file.lastModified() != record.getLong("last_modified")
+                    || file.length() != record.getLong("length")
+                    || !FileUtils
+                            .getFileSummary(file.getAbsoluteFile(), "SHA-256")
+                            .equals(record.getString("summary"))) {
+
+                LOGGER.warn("File was modified !!! :{}",
+                        file.getAbsoluteFile());
+            }
+        }
+        database.closeDatabase();
     }
 
     private void scanDir(File file) {
@@ -49,16 +86,12 @@ public class FileCheck {
     }
 
     private void scanFile(File file) {
-
         if (!file.exists()) {
             LOGGER.warn("file is not exists : {}", file.getAbsolutePath());
             return;
         }
         long lastModified = file.lastModified();
         long length = file.length();
-
-        // TO DO
-        // ADD check md5 etc.
 
         try {
 
@@ -86,17 +119,31 @@ public class FileCheck {
         }
     }
 
-    public void show() {
-
-        database.openDatabase();
-
-        List<FileRecords> fileRecords = FileRecords.findAll();
-
-        for (FileRecords record : fileRecords) {
-            LOGGER.info("=== {}", record);
+    private void checkFile(File file) {
+        if (!file.exists()) {
+            LOGGER.warn("file is not exists : {}", file.getAbsolutePath());
+            return;
         }
 
-        database.closeDatabase();
+        if (file.isDirectory()) {
+            return;
+        }
 
+        long lastModified = file.lastModified();
+        long length = file.length();
+
+        try {
+
+            FileRecords record = FileRecords.findFirst("path = ?",
+                    file.getAbsolutePath());
+
+            if (record == null) {
+                LOGGER.warn("record not exists,{}", file.getAbsolutePath());
+                return;
+            }
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
     }
 }

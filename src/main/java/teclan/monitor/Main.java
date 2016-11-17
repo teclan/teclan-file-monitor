@@ -20,7 +20,7 @@ public class Main {
     public void start() {
         fileCheck.init();
 
-        fileCheck.show();
+        fileCheck.check();
 
     }
 
