@@ -12,138 +12,122 @@ import com.google.inject.name.Named;
 
 import teclan.monitor.db.Database;
 import teclan.monitor.db.model.FileRecords;
+import teclan.monitor.file.listener.FileChangeListener;
 import teclan.utils.FileUtils;
 
 @Singleton
 public class FileCheck {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(FileCheck.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileCheck.class);
 
-    @Inject
-    @Named("config.file.monitor-dir")
-    private String              monitorDir;
+	@Inject
+	@Named("config.file.monitor-dir")
+	private String monitorDir;
+	@Inject
+	@Named("config.file.backup-dir")
+	private String backupDir;
 
-    @Inject
-    private Database            database;
+	@Inject
+	private Database database;
+	@Inject
+	private FileChangeListener fileChangeListener;
 
-    public void init() {
-        File file = new File(monitorDir);
-        database.openDatabase();
-        scanDir(file);
-        LOGGER.info("目录 {} 初始化结束", monitorDir);
-        database.closeDatabase();
+	public void init() {
+		File file = new File(backupDir);
+		database.openDatabase();
+		scanDir(file);
+		LOGGER.info("目录 {} 初始化结束", backupDir);
+		database.closeDatabase();
 
-        while (true) {
+	}
 
-            check();
+	public void check() {
+		database.openDatabase();
+		List<FileRecords> records = FileRecords.findAll();
 
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
+		for (FileRecords record : records) {
+			File file = new File(record.getString("path"));
 
-    }
+			if (!file.exists()) {
+				LOGGER.warn("File was deleted !!! :{}", file.getAbsoluteFile());
+				fileChangeListener.recover(record.getString("backup_path"), file.getAbsolutePath());
+				continue;
+			}
 
-    public void check() {
-        database.openDatabase();
-        List<FileRecords> records = FileRecords.findAll();
+			if (file.lastModified() != record.getLong("last_modified") || file.length() != record.getLong("length")
+					|| !FileUtils.getFileSummary(file.getAbsoluteFile(), "SHA-256")
+							.equals(record.getString("summary"))) {
+				fileChangeListener.recover(record.getString("backup_path"), file.getAbsolutePath());
+				LOGGER.warn("File was modified !!! :{}", file.getAbsoluteFile());
+			}
+		}
+		database.closeDatabase();
+		
 
-        for (FileRecords record : records) {
-            File file = new File(record.getString("path"));
+		try {
+			Thread.sleep(3*1000);
+		} catch (InterruptedException e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		
+		check();
+	}
 
-            if (!file.exists()) {
-                LOGGER.warn("File was deleted !!! :{}", file.getAbsoluteFile());
-                continue;
-            }
+	private void scanDir(File file) {
+		if (!file.exists()) {
+			LOGGER.warn("\nthe file {} is not exists!", file.getAbsolutePath());
+		}
+		if (file.isDirectory()) {
+			File[] files = file.listFiles();
+			for (int i = 0; i < files.length; i++) {
+				scanDir(files[i]);
+			}
+		} else {
+			scanFile(file);
+		}
+	}
 
-            if (file.lastModified() != record.getLong("last_modified")
-                    || file.length() != record.getLong("length")
-                    || !FileUtils
-                            .getFileSummary(file.getAbsoluteFile(), "SHA-256")
-                            .equals(record.getString("summary"))) {
+	private void scanFile(File file) {
+		if (!file.exists()) {
+			LOGGER.warn("file is not exists : {}", file.getAbsolutePath());
+			return;
+		}
+		long lastModified = file.lastModified();
+		long length = file.length();
 
-                LOGGER.warn("File was modified !!! :{}",
-                        file.getAbsoluteFile());
-            }
-        }
-        database.closeDatabase();
-    }
+		try {
 
-    private void scanDir(File file) {
-        if (!file.exists()) {
-            LOGGER.warn("\nthe file {} is not exists!", file.getAbsolutePath());
-        }
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                scanDir(files[i]);
-            }
-        } else {
-            scanFile(file);
-        }
-    }
+			FileRecords record = FileRecords.findFirst("backup_path = ?", file.getAbsolutePath());
 
-    private void scanFile(File file) {
-        if (!file.exists()) {
-            LOGGER.warn("file is not exists : {}", file.getAbsolutePath());
-            return;
-        }
-        long lastModified = file.lastModified();
-        long length = file.length();
+			if (record != null) {
+				LOGGER.warn("record already exists,{}", file.getAbsolutePath());
+				return;
+			}
 
-        try {
+			record = (FileRecords) FileRecords.getMetaModel().getModelClass().newInstance();
 
-            FileRecords record = FileRecords.findFirst("path = ?",
-                    file.getAbsolutePath());
+			String summary = FileUtils.getFileSummary(file.getAbsoluteFile(), "SHA-256");
 
-            if (record != null) {
-                LOGGER.warn("record already exists,{}", file.getAbsolutePath());
-                return;
-            }
+			record.set("backup_path", file.getAbsolutePath(),"path",file.getAbsolutePath().replace(backupDir,monitorDir) ,"length", length, "last_modified", lastModified, "summary",
+					summary).saveIt();
 
-            record = (FileRecords) FileRecords.getMetaModel().getModelClass()
-                    .newInstance();
+		} catch (InstantiationException e) {
+			LOGGER.error(e.getMessage(), e);
+		} catch (IllegalAccessException e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+	}
+	
+	public void show(){
+		
+		database.openDatabase();
+		
+		List<FileRecords> records = FileRecords.findAll();
+		
+		for(FileRecords record:records){
+			LOGGER.info("{}",record);
+		}
+		database.closeDatabase();
+		
+	}
 
-            String summary = FileUtils.getFileSummary(file.getAbsoluteFile(),
-                    "SHA-256");
-
-            record.set("path", file.getAbsolutePath(), "length", length,
-                    "last_modified", lastModified, "summary", summary).saveIt();
-
-        } catch (InstantiationException e) {
-            LOGGER.error(e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
-    }
-
-    private void checkFile(File file) {
-        if (!file.exists()) {
-            LOGGER.warn("file is not exists : {}", file.getAbsolutePath());
-            return;
-        }
-
-        if (file.isDirectory()) {
-            return;
-        }
-
-        long lastModified = file.lastModified();
-        long length = file.length();
-
-        try {
-
-            FileRecords record = FileRecords.findFirst("path = ?",
-                    file.getAbsolutePath());
-
-            if (record == null) {
-                LOGGER.warn("record not exists,{}", file.getAbsolutePath());
-                return;
-            }
-
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-        }
-    }
 }
