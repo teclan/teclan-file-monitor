@@ -16,9 +16,14 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>teclean.guice</groupId>
+			<artifactId>teclean-guice</artifactId>
+			<version>0.1.0</version>
+		</dependency>
+		<dependency>
 			<groupId>teclan.utils</groupId>
 			<artifactId>teclan-utils</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.1.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>

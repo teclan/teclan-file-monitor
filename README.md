@@ -9,6 +9,11 @@
 1、JDK
 2、Maven
 
+## 依赖项目
+
+[teclan-guice](https://github.com/teclan/teclan-guice)
+[teclan-utils](https://github.com/teclan/teclan-utils)
+
 ## 配置
 
 监控目录和备份目录用户在配置文件 config.conf中指定

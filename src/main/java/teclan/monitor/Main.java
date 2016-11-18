@@ -9,7 +9,7 @@ import com.google.inject.Injector;
 
 import teclan.monitor.file.FileCheck;
 import teclan.monitor.module.ConfigModule;
-import teclan.monitor.module.TeclanModule;
+import teclan.monitor.module.MonitorModule;
 
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
@@ -28,7 +28,7 @@ public class Main {
     public static void main(String[] args) {
 
         Injector injector = Guice.createInjector(
-                new ConfigModule("config.conf", "config"), new TeclanModule());
+                new ConfigModule("config.conf", "config"), new MonitorModule());
 
         Main monitor = injector.getInstance(Main.class);
         monitor.start();
