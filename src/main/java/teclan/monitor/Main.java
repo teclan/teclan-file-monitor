@@ -18,6 +18,7 @@ public class Main {
     private FileCheck           fileCheck;
 
     public void start() {
+
         fileCheck.init();
 
         fileCheck.check();

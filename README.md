@@ -4,6 +4,11 @@
 程序开始，会先进入备份目录下采集文件状态，包括文件大小，文件最后修改时间
 以及 SHA-256 存入文件数据库，数据库相关配置请参考配置文件。
 
+## 环境
+
+1、JDK
+2、Maven
+
 ## 配置
 
 监控目录和备份目录用户在配置文件 config.conf中指定
@@ -49,3 +54,14 @@ config {
 }
 
 ```
+## 打包
+
+在项目目录下执行以下命令，在 target 目录下生成 teclan-monitor-0.0.1-SNAPSHOT-bin.zip
+```
+mvn package -Dmaven.test.skip
+```
+## 运行
+解压 teclan-monitor-0.0.1-SNAPSHOT-bin.zip ，执行 bin 目录下的 startup 文件即可
+
+
+
