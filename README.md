@@ -11,7 +11,7 @@
 
 ## 依赖项目
 
-[teclan-guice](https://github.com/teclan/teclan-guice)、
+[teclan-guice](https://github.com/teclan/teclan-guice)
 
 
 [teclan-utils](https://github.com/teclan/teclan-utils)
