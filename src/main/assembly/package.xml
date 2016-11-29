@@ -32,11 +32,9 @@
           
         <!-- 把项目的配置文件，打包进zip文件的config目录 -->  
         <fileSet>  
-            <directory>${project.basedir}/src/main/config</directory>  
-            <outputDirectory>config</outputDirectory>  
+            <directory>${project.basedir}/src/main/resources</directory>  
+            <outputDirectory>conf</outputDirectory>  
             <includes>  
-                <include>*.xml</include>  
-                <include>*.properties</include> 
                  <include>*.conf</include>  
             </includes>  
         </fileSet>  
@@ -48,6 +46,7 @@
             <includes>  
                 <include>startup.*</include>  
             </includes>  
+            <fileMode>755</fileMode>
         </fileSet>  
   
         <!-- 把项目的脚本文件（ src/main/scripts 除了启动脚本文件），打包进zip文件的scripts目录 -->  
