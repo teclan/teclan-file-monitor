@@ -7,8 +7,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+import teclan.guice.Module.ConfigModule;
 import teclan.monitor.file.FileCheck;
-import teclan.monitor.module.ConfigModule;
 import teclan.monitor.module.MonitorModule;
 
 public class Main {
